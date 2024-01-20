@@ -1,0 +1,80 @@
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Scanner;
+
+public class ShortUrlGenerator {
+
+    private static final Map<String, String> urlMappings = new HashMap<>();
+
+    public static void main(String[] args) {
+        Scanner scanner = new Scanner(System.in);
+
+        while (true) {
+            System.out.println("1. Shorten URL");
+            System.out.println("2. Expand URL");
+            System.out.println("3. Exit");
+            System.out.print("Choose an option: ");
+            int choice = scanner.nextInt();
+            scanner.nextLine(); // Consume newline
+
+            switch (choice) {
+                case 1:
+                    shortenUrl(scanner);
+                    break;
+                case 2:
+                    expandUrl(scanner);
+                    break;
+                case 3:
+                    System.exit(0);
+                default:
+                    System.out.println("Invalid choice. Please try again.");
+            }
+        }
+    }
+
+    private static void shortenUrl(Scanner scanner) {
+        System.out.print("Enter the long URL: ");
+        String longUrl = scanner.nextLine();
+
+        try {
+            String shortUrl = generateShortUrl(longUrl);
+
+            if (urlMappings.containsKey(shortUrl)) {
+                System.out.println("Error: Short URL already exists for another long URL.");
+            } else {
+                urlMappings.put(shortUrl, longUrl);
+                System.out.println("Short URL: " + shortUrl);
+            }
+        } catch (NoSuchAlgorithmException e) {
+            System.out.println("Error generating short URL. Please try again.");
+        }
+    }
+
+    private static void expandUrl(Scanner scanner) {
+        System.out.print("Enter the short URL: ");
+        String shortUrl = scanner.nextLine();
+
+        if (urlMappings.containsKey(shortUrl)) {
+            String longUrl = urlMappings.get(shortUrl);
+            System.out.println("Long URL: " + longUrl);
+        } else {
+            System.out.println("Error: Short URL not found.");
+        }
+    }
+
+    private static String generateShortUrl(String longUrl) throws NoSuchAlgorithmException {
+        MessageDigest md = MessageDigest.getInstance("MD5");
+        md.update(longUrl.getBytes());
+
+        byte[] digest = md.digest();
+
+        StringBuilder sb = new StringBuilder();
+        for (byte b : digest) {
+            sb.append(String.format("%02x", b & 0xff));
+        }
+
+        return sb.toString().substring(0, 8); // Use the first 8 characters as the short URL
+    }
+}
